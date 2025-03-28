@@ -146,19 +146,19 @@ class FormularioFuncionario:
             if not id:
                 messagebox.showwarning("Aviso", "Digite o ID do funcionário para consultar!")
                 return
-                
+
             response = requests.get(f'http://127.0.0.1:5000/funcionarios/{id}')
             if response.status_code == 200:
                 funcionario = response.json()
                 self.funcionario_atual = funcionario
 
                 print(funcionario)
-                
+
                 # Preencher campos
                 self.funcionario_entry.config(state='normal')
                 self.funcionario_entry.delete(0, tk.END)
                 self.funcionario_entry.insert(0, funcionario['nome'])
-                
+
                 self.cargo_entry.config(state='normal')
                 self.cargo_entry.delete(0, tk.END)
                 self.cargo_entry.insert(0, funcionario['cargo'])
@@ -166,7 +166,7 @@ class FormularioFuncionario:
                 self.email_entry.config(state='normal')
                 self.email_entry.delete(0, tk.END)
                 self.email_entry.insert(0, funcionario['email'])
-                
+
                 try:
                     data = parsedate_to_datetime(funcionario['data_cont'])
                 except Exception:
@@ -175,7 +175,7 @@ class FormularioFuncionario:
 
                 self.data_contratacao.set_date(data)
                 self.data_contratacao.config(state='normal')
-                
+
                 self.salario_entry.config(state='normal')
                 self.salario_entry.delete(0, tk.END)
                 self.salario_entry.insert(0, str(funcionario['salario']))
@@ -188,23 +188,41 @@ class FormularioFuncionario:
                 self.endereco_entry.delete(0, tk.END)
                 self.endereco_entry.insert(0, str(funcionario['endereco']))
 
-                                
-               # Atualizar labels das fotos
+                # Atualizar labels das fotos
                 for i in range(5):
                     foto = funcionario[f'foto{i+1}']
                     print(foto)
-                    self.label_foto = self.frame.grid_slaves(row=6+i, column=1)[0]
-                    self.label_foto.winfo_children()[0].config(text="Foto salva:")
-                    self.label_foto.winfo_children()[1].config(text=foto)
-                    self.nomes_fotos[i] = foto 
+                    self.nomes_fotos[i] = foto
                     
+                    # Caminho completo da imagem
+                    caminho_foto = os.path.join("IMGS", foto)
+
+                    # Verificar se a foto existe antes de tentar carregá-la
+                    if os.path.exists(caminho_foto):
+                        # Carregar e exibir a imagem
+                        img = Image.open(caminho_foto)
+                        img.thumbnail((100, 100))  # Redimensionar a imagem para caber no label
+                        img_tk = ImageTk.PhotoImage(img)
+                        
+                        # Obter o label correspondente à foto
+                        label_foto = self.frame.grid_slaves(row=14+i, column=1)[0]
+                        label_foto.winfo_children()[0].config(text="Foto salva:")
+                        label_foto.winfo_children()[1].config(image=img_tk)
+                        label_foto.winfo_children()[1].image = img_tk  # Manter referência da imagem
+                        
+                    else:
+                        # Se a foto não for encontrada, exibir apenas o nome
+                        label_foto = self.frame.grid_slaves(row=14+i, column=1)[0]
+                        label_foto.winfo_children()[0].config(text="Foto salva:")
+                        label_foto.winfo_children()[1].config(text=foto)
+
                 # Habilitar campos para edição
                 self.habilitar_campos()
             else:
                 messagebox.showerror("Erro", "Funcionário não encontrado!")
         except Exception as e:
-            None
-           # messagebox.showerror("Erro", f"Erro ao consultar funcionário: {str(e)}")
+            messagebox.showerror("Erro", f"Erro ao consultar funcionário: {str(e)}")
+
             
     def salvar_funcionario(self):
         try:
@@ -231,13 +249,13 @@ class FormularioFuncionario:
                     messagebox.showinfo("Sucesso", "Funcionário atualizado com sucesso!")
             else:
                 # Criar novo funcionário
-                response = requests.post('http://127.0.0.1:5000/funcionarios', json=dados)
+                response = requests.post(f'http://127.0.0.1:5000/funcionarios/{self.funcionario_atual["id"]}', json=dados)
                 if response.status_code == 201:
                     messagebox.showinfo("Sucesso", "Funcionário criado com sucesso!")
                     
-            self.limpar_campos()
-            self.desabilitar_campos()
-            self.id_entry.config(state='normal')
+            #self.limpar_campos()
+            #self.desabilitar_campos()
+            #self.id_entry.config(state='normal')
             
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar funcionário: {str(e)}")

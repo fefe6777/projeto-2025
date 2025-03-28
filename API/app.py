@@ -121,52 +121,77 @@ def obter_funcionario(id):
 @app.route('/funcionarios/<int:id>', methods=['PUT'])
 def atualizar_funcionario(id):
     try:
+        # Obter os dados do corpo da requisição
         data = request.json
         
         # Validar dados obrigatórios
-        campos_obrigatorios = ['funcionario', 'cargo', 'data_contratacao', 'salario', 'foto1', 'foto2', 'foto3', 'foto4', 'foto5']
+        campos_obrigatorios = ['nome', 'cargo', 'email', 'senha', 'telefone', 'endereco', 'salario', 'data_cont', 'foto1', 'foto2', 'foto3', 'foto4', 'foto5']
         for campo in campos_obrigatorios:
             if campo not in data:
                 return jsonify({'erro': f'Campo {campo} é obrigatório'}), 400
         
+        # Conectar ao banco de dados
         cur = mysql.connection.cursor()
-        
+
         # Verificar se o funcionário existe
         cur.execute("SELECT id FROM funcionarios WHERE id = %s", (id,))
         if not cur.fetchone():
             return jsonify({'erro': 'Funcionário não encontrado'}), 404
         
-        # Atualizar funcionário
+        # Query para atualizar os dados do funcionário
         query = """
         UPDATE funcionarios 
-        SET funcionario = %s, cargo = %s, data_contratacao = %s, 
-            salario = %s, foto1 = %s, foto2 = %s, foto3 = %s, 
-            foto4 = %s, foto5 = %s
+        SET 
+            nome = %s, 
+            cargo = %s, 
+            email = %s, 
+            senha = %s, 
+            telefone = %s, 
+            endereco = %s, 
+            salario = %s, 
+            data_cont = %s, 
+            foto1 = %s, 
+            foto2 = %s, 
+            foto3 = %s, 
+            foto4 = %s, 
+            foto5 = %s
         WHERE id = %s
         """
+
+        # Valores que serão passados para a query
         valores = (
-            data['funcionario'],
+            data['nome'],
             data['cargo'],
-            data['data_contratacao'],
+            data['email'],
+            data['senha'],  # Adicionando o campo 'senha'
+            data['telefone'],
+            data['endereco'],
             data['salario'],
+            data['data_cont'],  # Corrigindo o nome da chave
             data['foto1'],
             data['foto2'],
             data['foto3'],
             data['foto4'],
             data['foto5'],
-            id
+            id  # O id do funcionário a ser atualizado
         )
-        
+
+        # Executar a query com os valores passados
         cur.execute(query, valores)
         mysql.connection.commit()
-        
+
+        # Resposta de sucesso
         return jsonify({'mensagem': 'Funcionário atualizado com sucesso'})
-        
+
     except Exception as e:
-        return jsonify({'erro': str(e)}), 500
+        # Retorna erro detalhado caso algo falhe
+        return jsonify({'erro': f'Erro ao atualizar o funcionário: {str(e)}'}), 500
+    
     finally:
+        # Fechar o cursor no final, independentemente de ocorrer erro ou não
         if 'cur' in locals():
             cur.close()
+
 
 @app.route('/funcionarios/<int:id>', methods=['DELETE'])
 def deletar_funcionario(id):
