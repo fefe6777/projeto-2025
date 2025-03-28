@@ -2,9 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 import edit_usuarios
 import relatorio_usuarios
-import edit_funcionarios
-import adm
-from adm import FormularioFuncionario
+from edit_funcionarios import FormularioFuncionario
+import relatorio_funcionarios
 
 
 
@@ -15,13 +14,14 @@ def janela_relatorio():
      relatorio_usuarios.criar_janela()
 
 def janela_funcionarios():
-     adm.abrir_tela()
-
-
-def janela_funcionarios():
     root = tk.Toplevel()  # Cria uma nova janela
     app = FormularioFuncionario(root)
     root.mainloop()
+
+def janela_relat():
+    relatorio_funcionarios.criar_janela()
+   
+
      
 
 def abrir_tela():

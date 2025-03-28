@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 from flask_cors import CORS
-
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 
@@ -15,85 +16,14 @@ app.config['MYSQL_DB'] = 'RH'
 
 mysql = MySQL(app)
 
-
-
-# Rota para verificar se um usuário existe pelo e-mail e senha
-@app.route('/usuarios/login', methods=['POST'])
-def verificar_usuario():
-    dados = request.json
-    email = dados.get('email')
-    senha = dados.get('senha')
-    
-    if not email or not senha:
-        return jsonify({'mensagem': 'Email e senha são obrigatórios'}), 400
-    
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id FROM usuarios WHERE email = %s AND senha = %s", (email, senha))
-        usuario = cur.fetchone()
-        cur.close()
-        
-        if usuario:
-            return jsonify({'mensagem': 'Login bem-sucedido'})
-        else:
-            return jsonify({'mensagem': 'Usuário ou senha inválidos'}), 401
-    except Exception as e:
-        return jsonify({'mensagem': str(e)}), 500
-    
-    # Rota para incluir um novo usuário
-@app.route('/usuarios', methods=['POST'])
-def criar_usuario():
-    dados = request.json
-    nome = dados.get('nome')
-    cargo = dados.get('cargo')
-    email = dados.get('email')
-    telefone = dados.get('telefone')
-    endereco = dados.get('endereco')
-    senha = dados.get('senha')
-
-    if not nome or not cargo or not email or not senha:
-        return jsonify({'mensagem': 'Todos os campos são obrigatórios'}), 400
-
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO usuarios (nome, cargo, email, telefone, endereco, senha) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (nome, cargo, email, telefone, endereco, senha))
-        mysql.connection.commit()
-        cur.close()
-        return jsonify({'mensagem': 'Usuário criado com sucesso'}), 201
-    except Exception as e:
-        return jsonify({'mensagem': str(e)}), 500
-    
-@app.route('/usuarios', methods=['GET'])
-def listar_usuarios():
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id, nome, cargo, email, telefone, endereco FROM usuarios")
-        dados = cur.fetchall()
-        cur.close()
-        return jsonify(dados)
-    except Exception as e:
-        return jsonify({'mensagem': str(e)}), 500
-    
-@app.route('/usuarios/<int:id>', methods=['DELETE'])
-def deletar_usuario(id):
-    try:
-        cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM usuarios WHERE id = %s", (id,))
-        mysql.connection.commit()
-        cur.close()
-        return jsonify({'mensagem': 'Usuário deletado com sucesso'})
-    except Exception as e:
-        return jsonify({'mensagem': str(e)}), 500
-    
-
+# Rotas de Funcionários
 @app.route('/funcionarios', methods=['POST'])
 def criar_funcionario():
     try:
         data = request.json
         
         # Validar dados obrigatórios
-        campos_obrigatorios = ['funcionario', 'cargo', 'data_contratacao', 'salario', 'foto1', 'foto2', 'foto3', 'foto4', 'foto5']
+        campos_obrigatorios = ['nome', 'cargo', 'email', 'senha','telefone', 'endereco', 'data_contratacao', 'salario', 'foto1', 'foto2', 'foto3', 'foto4', 'foto5']
         for campo in campos_obrigatorios:
             if campo not in data:
                 return jsonify({'erro': f'Campo {campo} é obrigatório'}), 400
@@ -103,12 +33,16 @@ def criar_funcionario():
         # Inserir funcionário
         query = """
         INSERT INTO funcionarios 
-        (funcionario, cargo, data_contratacao, salario, foto1, foto2, foto3, foto4, foto5)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        (nome, cargo, email, senha, telefone, endereco, data_cont, salario, foto1, foto2, foto3, foto4, foto5)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         valores = (
-            data['funcionario'],
+            data['nome'],
             data['cargo'],
+            data['email'],
+            data['senha'],
+            data['telefone'],
+            data['endereco'],
             data['data_contratacao'],
             data['salario'],
             data['foto1'],
@@ -132,33 +66,23 @@ def criar_funcionario():
         if 'cur' in locals():
             cur.close()
 
-@app.route('/funcionarios', methods=['GET'])
+@app.route('/funcionarios/', methods=['GET'])
 def listar_funcionarios():
     try:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM funcionarios")
+        cur.execute("SELECT id, nome, cargo, email, telefone, endereco, data_cont, salario, foto1, foto2, foto3, foto4, foto5 FROM funcionarios")
         dados = cur.fetchall()
         cur.close()
         
-        # Converter os resultados para dicionários
-        funcionarios = []
-        for dado in dados:
-            funcionario = {
-                'id': dado[0],
-                'funcionario': dado[1],
-                'cargo': dado[2],
-                'data_contratacao': dado[3],
-                'salario': dado[4],
-                'foto1': dado[5],
-                'foto2': dado[6],
-                'foto3': dado[7],
-                'foto4': dado[8],
-                'foto5': dado[9]
-            }
-            funcionarios.append(funcionario)
-            
-        return jsonify(funcionarios)
+        funcionarios = [{
+            'id': dado[0], 'nome': dado[1], 'cargo': dado[2], 'email': dado[3], 'telefone': dado[4],
+            'endereco': dado[5], 'data_cont': dado[6], 'salario': dado[7], 'foto1': dado[8],
+            'foto2': dado[9], 'foto3': dado[10], 'foto4': dado[11], 'foto5': dado[12]
+        } for dado in dados]
+
+       
         
+        return jsonify(funcionarios)
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
@@ -173,15 +97,19 @@ def obter_funcionario(id):
         if dado:
             funcionario = {
                 'id': dado[0],
-                'funcionario': dado[1],
+                'nome': dado[1],
                 'cargo': dado[2],
-                'data_contratacao': dado[3],
-                'salario': dado[4],
-                'foto1': dado[5],
-                'foto2': dado[6],
-                'foto3': dado[7],
-                'foto4': dado[8],
-                'foto5': dado[9]
+                'email': dado[3],
+                'senha': dado[4],
+                'telefone': dado[5],
+                'endereco': dado[6],
+                'salario': dado[7],
+                'data_cont': dado[8],
+                'foto1': dado[9],
+                'foto2': dado[10],
+                'foto3': dado[11],
+                'foto4': dado[12],
+                'foto5': dado[13]
             }
             return jsonify(funcionario)
         else:
@@ -261,9 +189,217 @@ def deletar_funcionario(id):
     finally:
         if 'cur' in locals():
             cur.close()
-    
 
+# Rota para consultar todos os registros
+@app.route('/usuarios', methods=['GET'])
+def listar_usuarios():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, nome, cargo, email FROM usuarios")
+        dados = cur.fetchall()
+        cur.close()
+        return jsonify(dados)
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para consultar um usuário pelo ID
+@app.route('/usuarios/<int:id>', methods=['GET'])
+def obter_usuario(id):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, nome, cargo, email FROM usuarios WHERE id = %s", (id,))
+        dado = cur.fetchone()
+        cur.close()
+        
+        if dado:
+            # Verificação adicional para garantir que 'dado' é uma tupla
+            if isinstance(dado, tuple):
+                # Converta a tupla para um dicionário para facilitar o retorno em JSON
+                usuario = {
+                    'id': dado[0],
+                    'nome': dado[1],
+                    'cargo': dado[2],
+                    'email': dado[3]
+                }
+                return jsonify(usuario), 200
+            else:
+                return jsonify({'mensagem': 'Erro inesperado: dado não é uma tupla'}), 500
+        else:
+            return jsonify({'mensagem': 'Usuário não encontrado'}), 401
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+
+# Rota para verificar se um usuário existe pelo e-mail e senha
+@app.route('/usuarios/login', methods=['POST'])
+def verificar_usuario():
+    dados = request.json
+    email = dados.get('email')
+    senha = dados.get('senha')
     
+    if not email or not senha:
+        return jsonify({'mensagem': 'Email e senha são obrigatórios'}), 400
+    
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id FROM usuarios WHERE email = %s AND senha = %s", (email, senha))
+        usuario = cur.fetchone()
+        cur.close()
+        
+        if usuario:
+            return jsonify({'mensagem': 'Login bem-sucedido'})
+        else:
+            return jsonify({'mensagem': 'Usuário ou senha inválidos'}), 401
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para incluir um novo usuário
+@app.route('/usuarios', methods=['POST'])
+def criar_usuario():
+    dados = request.json
+    nome = dados.get('nome')
+    cargo = dados.get('cargo')
+    email = dados.get('email')
+    senha = dados.get('senha')
+
+    if not nome or not cargo or not email or not senha:
+        return jsonify({'mensagem': 'Todos os campos são obrigatórios'}), 400
+
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO usuarios (nome, cargo, email, senha) VALUES (%s, %s, %s, %s)",
+                    (nome, cargo, email, senha))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'mensagem': 'Usuário criado com sucesso'}), 201
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para atualizar um usuário existente
+@app.route('/usuarios/<int:id>', methods=['PUT'])
+def atualizar_usuario(id):
+    dados = request.json
+    nome = dados.get('nome')
+    cargo = dados.get('cargo')
+    email = dados.get('email')
+    senha = dados.get('senha')
+
+    if not nome or not cargo or not email or not senha:
+        return jsonify({'mensagem': 'Todos os campos são obrigatórios'}), 400
+
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE usuarios SET nome=%s, cargo=%s, email=%s, senha=%s WHERE id=%s",
+                    (nome, cargo, email, senha, id))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'mensagem': 'Usuário atualizado com sucesso'})
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para deletar um usuário
+@app.route('/usuarios/<int:id>', methods=['DELETE'])
+def deletar_usuario(id):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM usuarios WHERE id = %s", (id,))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'mensagem': 'Usuário deletado com sucesso'})
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+    
+# Rota para listar todos os produtos
+@app.route('/produtos', methods=['GET'])
+def listar_produtos():
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, produto, quantidade, imagem, validade FROM produtos")
+        dados = cur.fetchall()
+        cur.close()
+        return jsonify(dados)
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para consultar um produto pelo ID
+@app.route('/produtos/<int:id>', methods=['GET'])
+def obter_produto(id):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, produto, quantidade, imagem, validade FROM produtos WHERE id = %s", (id,))
+        dado = cur.fetchone()
+        cur.close()
+        
+        if dado:
+            produto = {
+                'id': dado[0],
+                'produto': dado[1],
+                'quantidade': dado[2],
+                'imagem': dado[3],
+                'validade': dado[4]
+            }
+            return jsonify(produto), 200
+        else:
+            return jsonify({'mensagem': 'Produto não encontrado'}), 404
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para adicionar um novo produto
+@app.route('/produtos', methods=['POST'])
+def criar_produto():
+    dados = request.json
+    produto = dados.get('produto')
+    quantidade = dados.get('quantidade')
+    imagem = dados.get('imagem')
+    validade = dados.get('validade')
+    
+    if not produto or not quantidade or not imagem or not validade:
+        return jsonify({'mensagem': 'Todos os campos são obrigatórios'}), 400
+    
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO produtos (produto, quantidade, imagem, validade) VALUES (%s, %s, %s, %s)",
+                    (produto, quantidade, imagem, validade))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'mensagem': 'Produto criado com sucesso'}), 201
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+
+# Rota para atualizar um produto existente
+@app.route('/produtos/<int:id>', methods=['PUT'])
+def atualizar_produto(id):
+    dados = request.json
+    produto = dados.get('produto')
+    quantidade = dados.get('quantidade')
+    imagem = dados.get('imagem')
+    validade = dados.get('validade')
+    
+    if not produto or not quantidade or not imagem or not validade:
+        return jsonify({'mensagem': 'Todos os campos são obrigatórios'}), 400
+    
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE produtos SET produto=%s, quantidade=%s, imagem=%s, validade=%s WHERE id=%s",
+                    (produto, quantidade, imagem, validade, id))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'mensagem': 'Produto atualizado com sucesso'})
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
+
+# Rota para deletar um produto
+@app.route('/produtos/<int:id>', methods=['DELETE'])
+def deletar_produto(id):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM produtos WHERE id = %s", (id,))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'mensagem': 'Produto deletado com sucesso'})
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
