@@ -24,9 +24,7 @@ CREATE TABLE registros(
     idr INT AUTO_INCREMENT PRIMARY KEY,
     id INT,
     hora DATETIME,
-    imagem VARCHAR(70),
-    latitude VARCHAR(25),
-    longitude VARCHAR(25),
+    geolocalizacao VARCHAR(50),
     ultimo_registro DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id) REFERENCES funcionarios(id)  -- Referência à chave primária de funcionarios
 );
