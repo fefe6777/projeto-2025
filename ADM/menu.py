@@ -35,6 +35,10 @@ def abrir_tela():
     menu = tk.Tk()
     menu.title("Menu Principal")
 
+    imagem = tk.PhotoImage(file="ADM/imgs/cocacola.png")
+    tk.Label(menu, image=imagem).pack(pady=50)
+
+     
     # Maximizar a janela
     menu.state('zoomed')
 
