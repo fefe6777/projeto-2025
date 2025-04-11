@@ -139,7 +139,7 @@ class PontoEletronico:
                 # Realizar a identificação facial na foto capturada
                 id_predicted, confidence = recognizer.predict(gray_frame)
 
-                if id_predicted == self.funcionario_atual['id'] and confidence < 100:
+                if id_predicted == self.funcionario_atual['id'] and confidence < 75:
                     messagebox.showinfo("Sucesso", "Identificação facial bem-sucedida!")
 
                     # Armazenar data e hora atuais e geolocalização do usuário
@@ -147,13 +147,13 @@ class PontoEletronico:
                     g = geocoder.ip('me')
                     geolocalizacao = g.latlng
 
-                    registro_ponto = {
+                    registros_ponto = {
                         'id_funcionario': self.funcionario_atual['id'],
                         'data_hora': data_hora_atual,
                         'geolocalizacao': geolocalizacao
                     }
 
-                    response = requests.post('http://127.0.0.1:5000/registros_ponto', json=registro_ponto)
+                    response = requests.post('http://127.0.0.1:5000/registros_ponto', json=registros_ponto)
                     if response.status_code == 201:
                         messagebox.showinfo("Sucesso", "Registro de ponto armazenado com sucesso!")
                     else:

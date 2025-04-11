@@ -13,7 +13,7 @@ class FormularioFuncionario:
     def __init__(self, root):
         self.root = root
         self.root.title("Cadastro de Funcionário")
-        self.root.geometry("800x900")
+        self.root.geometry("700x800")
         
         # Variáveis para armazenar os nomes das fotos
         self.nomes_fotos = ["", "", "", "", ""]

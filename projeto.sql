@@ -20,14 +20,11 @@ CREATE TABLE funcionarios(
     ultimo_login DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE registros(
-    idr INT AUTO_INCREMENT PRIMARY KEY,
-    id INT,
-    hora DATETIME,
-    geolocalizacao VARCHAR(50),
-    ultimo_registro DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES funcionarios(id)  -- Referência à chave primária de funcionarios
-);
+CREATE TABLE `registros` (
+  `id` int NOT NULL,
+  `geolocalizacao` varchar(255) NOT NULL,
+  `data_hora` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
 
 
 CREATE TABLE usuarios(

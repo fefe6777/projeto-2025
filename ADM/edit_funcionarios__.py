@@ -191,4 +191,6 @@ def criar_tela():
     botao_sair = tk.Button(frame_botoes, text="Sair", command=sair, width=12)
     botao_sair.pack(side="left", padx=5)
 
+    
+
     janela.mainloop()

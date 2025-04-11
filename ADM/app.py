@@ -33,7 +33,7 @@ def verifica_usuario():
     except requests.exceptions.RequestException as e:
         messagebox.showerror("Erro de Requisição", f"Erro ao comunicar com o servidor: {e}")
 
-tk.Label(root, text="Área administrativa", font=("Arial Black", 14, "bold")).pack(pady=5)
+#tk.Label(root, text="Área administrativa", font=("Arial Black", 14, "bold")).pack(pady=5)
 
 try:
     imagem = tk.PhotoImage(file="ADM/IMGS/logotipo.png")

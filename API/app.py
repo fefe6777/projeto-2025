@@ -347,7 +347,7 @@ def bater_ponto(id):  # Agora o id é passado como parâmetro da URL
         dado = cur.fetchone()  # Busca o primeiro resultado (funcionário)
 
         cur.close()  # Fecha o cursor após a consulta
-        print (dado)
+        #print (dado)
         if dado:
             # Criando o dicionário com as informações do funcionário
             funcionario = {
@@ -374,29 +374,36 @@ def bater_ponto(id):  # Agora o id é passado como parâmetro da URL
         return jsonify({'erro': str(e)}), 500  # Caso ocorra um erro no servidor
     
 
-@app.route('/registros', methods=['POST'])
+@app.route('/registros_ponto', methods=['POST'])
 def obter_registros():
-    dados = request.json
-    nome = dados.get('nome')
-    cargo = dados.get('cargo')
-    email = dados.get('email')
-    senha = dados.get('senha')
-    telefone = dados.get('telefone')
-    endereco = dados.get('endereco')
-    
+    dados = request.json  # Obtém os dados enviados no corpo da requisição
 
-    if not nome or not cargo or not email or not senha or not telefone or not endereco:
+    print(dados)
+
+    # Extrair os dados da requisição
+    id_funcionario = dados.get('id_funcionario')
+    data_hora = datetime.strptime(dados.get('data_hora'), '%Y-%m-%d %H:%M:%S')
+    geolocalizacao = dados.get('geolocalizacao')
+
+    # Verificar se todos os campos obrigatórios estão presentes
+    if not id_funcionario or not data_hora or not geolocalizacao:
         return jsonify({'mensagem': 'Todos os campos são obrigatórios'}), 400
 
     try:
+        # Inserir os dados no banco de dados
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO registros () VALUES (%s, %s, %s, %s,%s,%s)",
-                    (nome, cargo, email, senha))
+        cur.execute("INSERT INTO registros (id, hora, geolocalizacao) VALUES (%s, %s, %s)",
+            (id_funcionario, data_hora, str(geolocalizacao)))
         mysql.connection.commit()
         cur.close()
+
+        # Retornar uma resposta de sucesso
         return jsonify({'mensagem': 'Registro criado com sucesso'}), 201
+
     except Exception as e:
-        return jsonify({'mensagem': str(e)}), 500
+        # Em caso de erro, retornar uma mensagem de erro
+        return jsonify({'mensagem': f'Erro ao criar o registro: {str(e)}'}), 500
+
 
 
 
