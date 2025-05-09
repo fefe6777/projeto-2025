@@ -220,8 +220,10 @@ class FormularioFuncionario:
                 self.habilitar_campos()
             else:
                 messagebox.showerror("Erro", "Funcionário não encontrado!")
+                self.root.lift()
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao consultar funcionário: {str(e)}")
+            self.root.lift()
 
             
     def salvar_funcionario(self):
@@ -247,11 +249,13 @@ class FormularioFuncionario:
                 response = requests.put(f'http://127.0.0.1:5000/funcionarios/{self.funcionario_atual["id"]}', json=dados)
                 if response.status_code == 200:
                     messagebox.showinfo("Sucesso", "Funcionário atualizado com sucesso!")
+                    self.root.lift()
             else:
                 # Criar novo funcionário
                 response = requests.post(f'http://127.0.0.1:5000/funcionarios', json=dados)
                 if response.status_code == 201:
                     messagebox.showinfo("Sucesso", "Funcionário criado com sucesso!")
+                    self.root.lift()
                     
             #self.limpar_campos()
             #self.desabilitar_campos()
@@ -259,15 +263,18 @@ class FormularioFuncionario:
             
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao salvar funcionário: {str(e)}")
+            self.root.lift()
             
     def alterar_funcionario(self):
         if not self.funcionario_atual:
             messagebox.showwarning("Aviso", "Consulte um funcionário primeiro!")
+            self.root.lift()
             return
             
     def excluir_funcionario(self):
         if not self.funcionario_atual:
             messagebox.showwarning("Aviso", "Consulte um funcionário primeiro!")
+            self.root.lift()
             return
             
         if messagebox.askyesno("Confirmar", "Tem certeza que deseja excluir este funcionário?"):
@@ -275,10 +282,13 @@ class FormularioFuncionario:
                 response = requests.delete(f'http://127.0.0.1:5000/funcionario/{self.funcionario_atual["id"]}')
                 if response.status_code == 200:
                     messagebox.showinfo("Sucesso", "Funcionário excluído com sucesso!")
+                    self.root.lift()
                     self.limpar_campos()
                     self.desabilitar_campos()
             except Exception as e:
                 messagebox.showerror("Erro", f"Erro ao excluir funcionário: {str(e)}")
+                self.root.lift()
+                
                 
     def limpar_campos(self):
         self.funcionario_entry.config(state='normal')
@@ -319,6 +329,7 @@ class FormularioFuncionario:
         
         if not self.cap.isOpened():
             messagebox.showerror("Erro", "Não foi possível acessar a webcam!")
+            self.root.lift()
             janela_camera.destroy()
             return
             
@@ -371,6 +382,7 @@ class FormularioFuncionario:
             janela_camera.destroy()
             
             messagebox.showinfo("Sucesso", "Foto capturada com sucesso!")
+            self.root.lift()
 
 if __name__ == "__main__":
     root = tk.Tk()

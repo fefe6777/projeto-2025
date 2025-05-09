@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Face in Face - Reconhecimento facial</title>
+  <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+  <div class="bg"></div>
+
+  <header class="top-menu">
+    <div class="user-info">
+      <span id="foto"></span>
+      <span id="nome" class="user-name">Olá, João Silva</span>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#registro">Marcar Ponto</a></li>
+        <li><a href="#relatorio">Consultar Pontos</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="registro" class="login-box">
+    <h2>Ponto com Reconhecimento Facial</h2>
+    <video class="video" id="video" width="100%" autoplay></video>
+    <button onclick="tirarFoto()">Tirar Foto</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <p id="status" class="status-text"></p>
+  </section>
+
+  <section id="relatorio" class="login-box bottom-box">
+    <h2>Relatório de Ponto</h2>
+    <p>Últimos registros aparecerão aqui.</p>
+    <div id="relatorioConteudo"></div>
+  </section>
+
+  <footer>
+    <p>&copy; Face in Face</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

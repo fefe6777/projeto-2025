@@ -1,0 +1,112 @@
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: Arial;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(125% 125% at 50% 10%, #000000 40%, rgb(170, 14, 14) 100%);
+  z-index: -10;
+}
+
+.top-menu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(24, 20, 20, 0.95);
+  padding: 10px 30px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.top-menu nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.top-menu nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.top-menu nav ul li a:hover {
+  text-decoration: underline;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  color: white;
+}
+
+.login-box {
+  position: relative;
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 40px;
+  background: rgba(24, 20, 20, 0.987);
+  box-shadow: 0 15px 25px rgba(0,0,0,.6);
+  border-radius: 10px;
+  color: white;
+  text-align: center;
+}
+
+.bottom-box {
+  margin-bottom: 100px;
+}
+
+button {
+  background-color: #b90505;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #8b1919;
+}
+
+.status-text {
+  margin-top: 10px;
+  color: white;
+}
+
+footer {
+  font-family: Arial;
+  background-color: transparent;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+
+}
+
+.video {
+  border-radius: 20px;
+}

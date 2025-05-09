@@ -41,6 +41,7 @@ class PontoEletronico:
             id = self.id_entry.get()
             if not id:
                 messagebox.showwarning("Aviso", "Digite o ID do funcionário para login!")
+                self.root.lift()
                 return
 
             # Requisição à API para pegar os dados do funcionário
@@ -50,8 +51,10 @@ class PontoEletronico:
                 print(funcionario)
                 self.funcionario_atual = funcionario  # Armazenando dados do funcionário para uso posterior
                 messagebox.showinfo("Sucesso", f"Bem-vindo {funcionario['nome']}!")
+                self.root.lift()
             else:
                 messagebox.showerror("Erro", "Funcionário não encontrado!")
+                self.root.lift()
         
 
     def iniciar_identificacao(self):
@@ -107,6 +110,7 @@ class PontoEletronico:
 
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao iniciar identificação facial: {str(e)}")
+            self.root.lift()
 
     def identificar_face(self, janela_camera):
         try:
@@ -141,6 +145,7 @@ class PontoEletronico:
 
                 if id_predicted == self.funcionario_atual['id'] and confidence < 75:
                     messagebox.showinfo("Sucesso", "Identificação facial bem-sucedida!")
+                    self.root.lift()
 
                     # Armazenar data e hora atuais e geolocalização do usuário
                     data_hora_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -156,11 +161,14 @@ class PontoEletronico:
                     response = requests.post('http://127.0.0.1:5000/registros_ponto', json=registros_ponto)
                     if response.status_code == 201:
                         messagebox.showinfo("Sucesso", "Registro de ponto armazenado com sucesso!")
+                        self.root.lift()
                     else:
                         messagebox.showerror("Erro", "Falha ao armazenar registro de ponto!")
+                        self.root.lift()
 
                 else:
                     messagebox.showerror("Erro", "Identificação facial falhou!")
+                    self.root.lift()
 
                 # Liberar a câmera e fechar a janela
                 self.cap.release()
@@ -168,6 +176,7 @@ class PontoEletronico:
 
         except Exception as e:
             messagebox.showerror("Erro", f"Erro ao realizar identificação facial: {str(e)}")
+            self.root.lift()
 
 if __name__ == "__main__":
     root = tk.Tk()

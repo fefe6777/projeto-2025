@@ -3,6 +3,8 @@ from flask_mysqldb import MySQL
 from flask_cors import CORS
 from datetime import datetime
 import os
+basedir = os.path.dirname(os.path.abspath(__file__))
+
 
 app = Flask(__name__)
 
@@ -382,7 +384,12 @@ def obter_registros():
 
     # Extrair os dados da requisição
     id_funcionario = dados.get('id_funcionario')
-    data_hora = datetime.strptime(dados.get('data_hora'), '%Y-%m-%d %H:%M:%S')
+
+    if(dados.get('data_hora')):
+        data_hora = datetime.strptime(dados.get('data_hora'), '%Y-%m-%d %H:%M:%S')
+    else: 
+        data_hora = datetime.now()
+    
     geolocalizacao = dados.get('geolocalizacao')
 
     # Verificar se todos os campos obrigatórios estão presentes
@@ -392,7 +399,7 @@ def obter_registros():
     try:
         # Inserir os dados no banco de dados
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO registros (id, hora, geolocalizacao) VALUES (%s, %s, %s)",
+        cur.execute("INSERT INTO registros (id, data_hora, geolocalizacao) VALUES (%s, %s, %s)",
             (id_funcionario, data_hora, str(geolocalizacao)))
         mysql.connection.commit()
         cur.close()
@@ -404,6 +411,109 @@ def obter_registros():
         # Em caso de erro, retornar uma mensagem de erro
         return jsonify({'mensagem': f'Erro ao criar o registro: {str(e)}'}), 500
 
+
+# Rota para verificar se um usuário existe pelo e-mail e senha
+@app.route('/funcionarios/login', methods=['POST'])
+def verificar_funcionario_login():
+    dados = request.json
+    email = dados.get('email')
+    senha = dados.get('senha')
+    
+    if not email or not senha:
+        return jsonify({'mensagem': 'Email e senha são obrigatórios'}), 400
+    
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT id, nome, email, senha, foto1 
+            FROM funcionarios 
+            WHERE email = %s AND senha = %s
+        """, (email, senha))
+        usuario = cur.fetchone()
+        cur.close()
+        
+        if usuario:
+            funcionario = {
+                'mensagem': 'Login bem-sucedido',
+                'id': usuario[0],
+                'nome': usuario[1],
+                'email': usuario[2],
+                'foto1': usuario[4]
+            }
+            return jsonify(funcionario)
+        else:
+            return jsonify({'mensagem': 'Usuário ou senha inválidos'}), 401
+    except Exception as e:
+        return jsonify({'mensagem': 'Erro no servidor: ' + str(e)}), 500
+
+
+@app.route('/reconhecer_face', methods=['POST'])
+def reconhecer_face():
+    try:
+        dados = request.json
+        id_funcionario = dados.get('id_funcionario')
+        imagem_base64 = dados.get('imagem')
+
+        
+        if not id_funcionario or not imagem_base64:
+            return jsonify({'mensagem': 'Campos obrigatórios ausentes'}), 400
+
+        import cv2
+        import numpy as np
+        import base64
+        import os
+
+        # Decodificar imagem base64 recebida
+        imagem_bytes = base64.b64decode(imagem_base64.split(",")[1])
+        nparr = np.frombuffer(imagem_bytes, np.uint8)
+        imagem_recebida = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+
+        # Buscar fotos cadastradas
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT foto1, foto2, foto3, foto4, foto5 FROM funcionarios WHERE id = %s", (id_funcionario,))
+        fotos = cur.fetchone()
+        cur.close()
+        if not fotos:
+            return jsonify({'mensagem': 'Funcionário não encontrado'}), 404
+
+        # Carregar as imagens cadastradas
+        fotos_cadastradas = []
+        for nome_foto in fotos:
+            if nome_foto:
+                nome_foto = nome_foto.strip()
+                caminho = os.path.join(basedir, '../IMGS', nome_foto)
+                print(f"Verificando: {caminho}")
+                if os.path.exists(caminho):
+                    img = cv2.imread(caminho, cv2.IMREAD_GRAYSCALE)
+                    if img is not None:
+                        print(f"Imagem carregada: {caminho}, shape: {img.shape}")
+                        fotos_cadastradas.append(img)
+                    else:
+                        print(f"Erro ao carregar imagem: {caminho}")
+                else:
+                    print(f"Imagem não encontrada no caminho: {caminho}")
+                    
+        if not fotos_cadastradas:
+            return jsonify({'mensagem': 'Fotos do funcionário não encontradas'}), 400
+        
+
+        # Treinar reconhecedor
+        recognizer = cv2.face.LBPHFaceRecognizer_create()
+        labels = [id_funcionario] * len(fotos_cadastradas)
+        recognizer.train(fotos_cadastradas, np.array(labels))
+
+        # Realizar predição
+        id_predito, confianca = recognizer.predict(imagem_recebida)
+
+        if id_predito == id_funcionario and confianca < 90:
+            print(confianca)
+            return jsonify({'reconhecido': True, 'confianca': confianca})
+        else:
+            print(confianca)
+            return jsonify({'reconhecido': False, 'confianca': confianca})
+
+    except Exception as e:
+        return jsonify({'mensagem': str(e)}), 500
 
 
 
