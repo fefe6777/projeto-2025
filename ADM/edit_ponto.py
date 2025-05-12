@@ -143,7 +143,7 @@ class PontoEletronico:
                 # Realizar a identificação facial na foto capturada
                 id_predicted, confidence = recognizer.predict(gray_frame)
 
-                if id_predicted == self.funcionario_atual['id'] and confidence < 75:
+                if id_predicted == self.funcionario_atual['id'] and confidence > 55:
                     messagebox.showinfo("Sucesso", "Identificação facial bem-sucedida!")
                     self.root.lift()
 
