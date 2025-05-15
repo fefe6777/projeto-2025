@@ -110,3 +110,8 @@ footer {
 .video {
   border-radius: 20px;
 }
+
+#relatorioConteudo p {
+  text-align: left;
+  font-size: 14px;
+}

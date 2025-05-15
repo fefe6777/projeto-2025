@@ -62,7 +62,7 @@
     font-family: Arial;
   }
   
-  .login-box form a {
+  .login-box form button {
     position: relative;
     display: inline-block;
     padding: 10px 20px;
@@ -73,10 +73,12 @@
     overflow: hidden;
     transition: .5s;
     margin-top: 40px;
-    letter-spacing: 4px
+    letter-spacing: 4px;
+    background-color: #00000000;
+    border-style: none;
   }
   
-  .login-box a:hover {
+  .login-box button:hover {
     background: #b90505;
     color: #fff;
     border-radius: 5px;

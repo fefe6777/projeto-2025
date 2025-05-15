@@ -85,3 +85,33 @@ function tirarFoto() {
     document.getElementById('status').textContent = "Erro ao obter localização.";
   });
 }
+
+function carregarRelatorio() {
+  const id_funcionario = usuario.id;
+  console.log(usuario.id);
+  fetch(`http://localhost:5000/registros_ponto/${id_funcionario}`)
+    .then(res => res.json())
+    .then(registros => {
+      const container = document.getElementById('relatorioConteudo');
+      container.innerHTML = '';
+
+      if (registros.length === 0) {
+        container.innerHTML = '<p>Nenhum ponto registrado ainda.</p>';
+        return;
+      }
+
+      registros.forEach(registro => {
+        const div = document.createElement('div');
+        div.innerHTML = `<p><strong>Data:</strong> ${registro.data_hora} <br> 
+                         <strong>Localização:</strong> ${registro.geolocalizacao}</p><hr>`;
+        container.appendChild(div);
+      });
+    })
+    .catch(err => {
+      console.error('Erro ao buscar relatório:', err);
+      document.getElementById('relatorioConteudo').innerHTML = '<p>Erro ao carregar relatório.</p>';
+    });
+}
+
+// Carrega os registros assim que a aba "Relatório" for clicada
+document.querySelector('a[href="#relatorio"]').addEventListener('click', carregarRelatorio);

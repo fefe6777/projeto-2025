@@ -329,6 +329,8 @@ def deletar_funcionario(id):
             cur.close()
     
 
+
+
     
 
 if __name__ == '__main__':

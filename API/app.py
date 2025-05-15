@@ -297,8 +297,10 @@ def criar_usuario():
 
     try:
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO usuarios (nome, cargo, email, senha, telefone, endereco) VALUES (%s, %s, %s, %s,%s,%s)",
-                    (nome, cargo, email, senha))
+        cur.execute(
+    "INSERT INTO usuarios (nome, cargo, email, senha, telefone, endereco) VALUES (%s, %s, %s, %s, %s, %s)",
+    (nome, cargo, email, senha, telefone, endereco)
+)
         mysql.connection.commit()
         cur.close()
         return jsonify({'mensagem': 'Usuário criado com sucesso'}), 201
@@ -516,6 +518,27 @@ def reconhecer_face():
         return jsonify({'mensagem': str(e)}), 500
 
 
+@app.route('/registros_ponto/<int:id_funcionario>', methods=['GET'])
+def listar_pontos_funcionario(id_funcionario):
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT data_hora, geolocalizacao 
+            FROM registros 
+            WHERE id = %s 
+            ORDER BY data_hora DESC
+        """, (id_funcionario,))
+        dados = cur.fetchall()
+        cur.close()
+
+        registros = [
+            {'data_hora': str(linha[0]), 'geolocalizacao': linha[1]}
+            for linha in dados
+        ]
+        return jsonify(registros), 200
+
+    except Exception as e:
+        return jsonify({'mensagem': 'Erro ao buscar registros: ' + str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
